@@ -58,16 +58,25 @@ class ncmTopo(Topo):
                 # create link between monitor and switch
                 linkMonitorToSwitch = self.addLink(switch, monitor)
                 routingTable[monitorDpid].append({
+                    "cookie": "0x0",
+                    "priority": 10,
+                    'actions':[f'goto_table:{switchId+1}'],
+                    'match':{'ip,nw_dst': f'10.0.{switchId}.0/24'},
+                    "table": 0
+                })
+                routingTable[monitorDpid].append({
+                    "cookie": "0x0",
                     "priority": 10,
                     'actions':[f'output:{switchId+1}'],
                     'match':{'ip,nw_dst': f'10.0.{switchId}.0/24'},
-                    "table_id": 0
+                    "table": f'{switchId+1}'
                 })
                 routingTable[switchDpid].append({
+                    "cookie": "0x0",
                     "priority": 1,
                     'actions':['output:1'],
                     'match':{},
-                    "table_id": 0
+                    "table": 0
                 })
 
                 for hostId in range(numSwitchToHosts): # create host(s)
@@ -77,10 +86,18 @@ class ncmTopo(Topo):
                     # create link between switch and host
                     linkHostToSwitch = self.addLink(host, switch)
                     routingTable[switchDpid].append({
+                        "cookie": "0x0",
+                        "priority": 10,
+                        'actions':[f'goto_table:{hostId+2}'],
+                        'match':{'ip,nw_dst': hostIp},
+                        "table": 0
+                    })
+                    routingTable[switchDpid].append({
+                        "cookie": "0x0",
                         "priority": 10,
                         'actions':[f'output:{hostId+2}'],
                         'match':{'ip,nw_dst': hostIp},
-                        "table_id": 0
+                        "table": f'{hostId+2}'
                     })
 
                     # check the number of created host
@@ -92,10 +109,18 @@ class ncmTopo(Topo):
             server = self.addHost('localServer', ip = '10.0.0.1')
             linkMonitorToServer = self.addLink(server, monitor, intfName1='ls-eth0')
             routingTable[monitorDpid].append({
+                "cookie": "0x0",
+                "priority": 11,
+                'actions':[f'goto_table:{numSwitches+1}'],
+                'match':{'ip,nw_dst': '10.0.0.1'},
+                "table": 0
+            })
+            routingTable[monitorDpid].append({
+                "cookie": "0x0",
                 "priority": 11,
                 'actions':[f'output:{numSwitches+1}'],
                 'match':{'ip,nw_dst': '10.0.0.1'},
-                "table_id": 0
+                "table": f'{numSwitches+1}'
             })
             for webID in range(numWeb):
                 webIP = whiteList[webID]['ip']
@@ -103,10 +128,18 @@ class ncmTopo(Topo):
                 web = self.addHost(f'web{webID+1}', ip = webIP)
                 linkMonitorToInternet = self.addLink(web, monitor)
                 routingTable[monitorDpid].append({
+                    "cookie": "0x0",
+                    "priority": 10,
+                    'actions':[f'goto_table:{numSwitches+webID+2}'],
+                    'match':{'ip,nw_dst': webIP},
+                    "table": 0
+                })
+                routingTable[monitorDpid].append({
+                    "cookie": "0x0",
                     "priority": 10,
                     'actions':[f'output:{numSwitches+webID+2}'],
                     'match':{'ip,nw_dst': webIP},
-                    "table_id": 0
+                    "table": f'{numSwitches+webID+2}'
                 })
 
         with open('routing_table.json', 'w') as file:
@@ -115,11 +148,12 @@ class ncmTopo(Topo):
             json.dump(dpidToSwitchName, file, indent = 2)
 
 net = None
+routingTable = {}
 
 def setup_net():
     global net
+    global routingTable
     if net is None:
-        routingTable = {}
         topo = ncmTopo(routingTable)
 
         net = Mininet(
@@ -146,7 +180,10 @@ def setup_net():
             host.cmd('sysctl -w net.ipv6.conf.default.disable_ipv6=1')
             host.cmd('sysctl -w net.ipv6.conf.lo.disable_ipv6=1')
 
-        configureSwitches(net,routingTable)
+def conf_net():
+    global net
+    global routingTable
+    configureSwitches(net,routingTable)
 
 def cli_net():
     global net
@@ -161,24 +198,22 @@ def stop_net():
     global net
     if net:
         net.stop()
-        os.system('mn -c')
 
 def configureSwitches(net,routingTable):
     num_switches = len(net.switches)
     for switch in net.switches:
         switch_name = switch.name
-        print(switch_name)
-        # for that using WSL
-        set_br = f'ovs-vsctl set bridge {switch_name} datapath_type=netdev'
-        switch.cmd(set_br)
+        # # for that using WSL
+        # set_br = f'ovs-vsctl set bridge {switch_name} datapath_type=netdev'
+        # switch.cmd(set_br)
         switch_dpid = switch.dpid
         for route in routingTable[switch_dpid]:
             priority = route['priority']
             actions = ",".join(route["actions"])
             match = route['match']
-            table_id = route['table_id']
+            table = route['table']
             match_str = ",".join([f"{key}={value}" for key, value in match.items()])
-            set_route = f'ovs-ofctl add-flow {switch_name} "table={table_id},priority={priority},{match_str},actions={actions}"'
+            set_route = f'ovs-ofctl add-flow {switch_name} "table={table},priority={priority},{match_str},actions={actions}"'
             os.system(set_route)
 
 if __name__ == '__main__':
@@ -186,7 +221,9 @@ if __name__ == '__main__':
     # command = "gnome-terminal -- /bin/sh -c 'ryu-manager switch.py ncm_api.py'"
     # subprocess.run(command, shell=True)
     setLogLevel('info')
-    # os.system("ryu-manager switch.py ncm_api.py &")
+    os.system("ryu-manager switch.py ncm_api.py &")
     setup_net()
+    conf_net()
     cli_net()
     stop_net()
+    os.system('mn -c')
