@@ -48,7 +48,7 @@ URL used for APIs in this project
 http://<controllerIP>:<controllerPort>/<field>/<devices>/<deviceID>/<name>
 ```
 
-Get more information in [Wiki - REST API Documentation](https://github.com/Caikun-Peng/wiki/REST-API-Documentation)
+Get more information in [Wiki - REST API Documentation](https://github.com/Caikun-Peng/NCM/wiki/REST-API-Documentation)
 
 # Scripts Description
 ## net.py
