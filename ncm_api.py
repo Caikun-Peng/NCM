@@ -447,15 +447,16 @@ class ncmController(ControllerBase):
             route = json.loads(str({reg.body.decode("utf-8")}).replace('\'',''))
             switch_dpid = parse_dpid(kwargs['dpid'])
             switch_name = dpidToSwitchName[switch_dpid][0]
+            cookie  = route['cookie']
             priority = route['priority']
             actions = ",".join(route["actions"])
             match = route['match']
             if 'tableID' in kwargs:
                 table_id = kwargs['tableID']
             else:
-                table_id = route['table_id']
+                table_id = route['table']
             match_str = ",".join([f"{key}={value}" for key, value in match.items()])
-            set_route = f'ovs-ofctl add-flow {switch_name} "table={table_id},priority={priority},{match_str},actions={actions}"'
+            set_route = f'ovs-ofctl add-flow {switch_name} "cookie={cookie},table={table_id},priority={priority},{match_str},actions={actions}"'
             state = os.system(set_route)
             if state == 256:  
                 body = json.dumps({'status': 'failure', 'reason': 'ovs-ofctl error'})
