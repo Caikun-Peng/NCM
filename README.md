@@ -62,3 +62,11 @@ python3 net.py
 
 ## ncm_api.py
 
+[This script](ncm_api.py) defines the API interfaces.
+
+To work properly, it should run with `switch.py`: 
+``` cmd 
+ryu-manager switch.py ncm_api.py
+```
+
+Get more information about APIs [here](https://github.com/Caikun-Peng/NCM/wiki/REST-API-Documentation).
