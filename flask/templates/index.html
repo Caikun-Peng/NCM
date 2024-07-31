@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Switch Information</title>
+<style>
+    .container {
+        display: flex;
+    }
+    .left-panel {
+        flex: 1;  /* 占据一定的空间比例 */
+        padding: 20px;  /* 内边距 */
+        display: flex;  /* 设置为 flex 布局 */
+        flex-direction: column;  /* 子元素垂直排列 */
+        align-items: center;  /* 子元素在交叉轴（此处为水平轴）上居中对齐 */
+        gap: 10px;  /* 按钮之间的间隙 */
+    }
+    .right-panel {
+        flex: 3;  /* 占据更多的空间比例 */
+        padding: 20px;  /* 内边距 */
+    }
+    table {
+        width: 100%;  /* 表格宽度为容器的100% */
+        border-collapse: collapse;  /* 边框合并为单一边框 */
+    }
+    th, td {
+        border: 1px solid black;  /* 单元格边框 */
+        padding: 8px;  /* 单元格内边距 */
+        text-align: left;  /* 文本左对齐 */
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="left-panel">
+        <button onclick="fetchSwitches()">Get Switches</button>
+        <button onclick="fetchSwitches(1)">Get Switches 1</button>
+        <button onclick="fetchSwitches(257)">Get Switches 257</button>
+    </div>
+    <div class="right-panel" id="results"></div>
+</div>
+
+<form id="dataForm">
+    <label for="hostName">Host Name:</label>
+    <input type="text" id="hostName" name="hostName">
+    <button type="submit">Submit</button>
+</form>
+
+<div id="result"></div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
