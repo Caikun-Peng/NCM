@@ -5,7 +5,7 @@ Create Date: 20/07/2024
 Edited Date: 01/08/2024
 Description: REST API for switch configuration, 
     get more information in project wiki:
-    https://github.com/Caikun-Peng/TELE4642_Lab/wiki/REST-API-Documentation
+    https://github.com/Caikun-Peng/NCM/wiki/REST-API-Documentation
 Dependencies: json, ryu, subprocess, logging, os
 '''
 
