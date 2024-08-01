@@ -256,7 +256,8 @@ if __name__ == '__main__':
     setLogLevel('info')
     net = None
     net = setup_net(net)
-    ryu_process = subprocess.Popen(['xterm', '-e', 'ryu-manager switch.py ncm_api.py'])
+    # start ryu
+    ryu_process = subprocess.Popen(['xterm', '-e', 'ryu-manager ncm_api.py'])
     start_net(net)
     conf_net(net)
     cli_net(net)
