@@ -187,19 +187,31 @@
         <table id="table2">
             <thead>
                 <tr>
-                    <th style="width: 45%;">URL</th>
+                    <th style="width: 45%;">Name</th>
                     <th style="width: 45%;">IP</th>
-                    <th style="width: 10%;">Block Selected IP/URL</th>
+                    <th style="width: 10%;">Active</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                {% for entry in whitelist %}
+                <tr>
+                    <td class="input-cell"><div contenteditable="true">{{ entry.name }}</div></td>
+                    <td class="input-cell"><div contenteditable="true">{{ entry.ip }}</div></td>
+                    <td class="input-cell">
+                        <button class="block-btn yes selected" onclick="return false;">Y</button>
+                        <button class="block-btn no" onclick="deleteRow(this)">N</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
         <div class="buttons">
             <button class="top-right-button" onclick="addRow('table2')">Add</button>
-            <button class="top-right-button" onclick="finalConfirm('table2')">Apply</button>
+            <button class="top-right-button" onclick="applyChanges('table2')">Apply</button>
         </div>
     </div>
-        <script>
+
+    <script>
         function showContent(sectionId) {
             const sections = document.querySelectorAll('.content');
             sections.forEach(section => section.style.display = 'none');
@@ -224,55 +236,59 @@
                 const cell = document.createElement('td');
                 cell.className = 'input-cell';
                 const blockYButton = document.createElement('button');
-                blockYButton.className = 'block-btn yes';
+                blockYButton.className = 'block-btn yes selected'; // Always highlighted
                 blockYButton.textContent = 'Y';
                 blockYButton.onclick = function() {
-                    toggleBlockStatus(this, 'Y');
+                    return false; // Do nothing on click
                 };
                 const blockNButton = document.createElement('button');
                 blockNButton.className = 'block-btn no';
                 blockNButton.textContent = 'N';
                 blockNButton.onclick = function() {
-                    toggleBlockStatus(this, 'N');
+                    // deleteRow(this);
+                    return false;
                 };
                 cell.appendChild(blockYButton);
                 cell.appendChild(blockNButton);
                 newRow.appendChild(cell);
-            } 
+            }
             tableBody.appendChild(newRow);
         }
-        // function 
-        function toggleBlockStatus(button, status) {
-            const buttons = button.parentElement.querySelectorAll('.block-btn');
-            buttons.forEach(btn => {
-                if (btn === button) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
-            });
+
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            row.parentNode.removeChild(row);
         }
 
-        function finalConfirm(tableId) {
+        function applyChanges(tableId) {
             const rows = document.querySelectorAll(`#${tableId} tbody tr`);
             const data = [];
             rows.forEach(row => {
-                const rowData = [];
+                const rowData = {};
                 const cells = row.querySelectorAll('.input-cell div');
-                cells.forEach(cell => rowData.push(cell.textContent));
+                rowData.name = cells[0].textContent;
+                rowData.ip = cells[1].textContent;
+                rowData.block = row.querySelector('.block-btn.selected').textContent;
                 data.push(rowData);
             });
-            const endpoint = tableId === 'table2' ? '/whitelist' : '/flow_rules';
-            sendData(endpoint, data);
+            sendData('/whitelist', data);
         }
 
-        // function sendRequest(endpoint) {
-        //     fetch(endpoint, {
-        //         method: 'POST'
-        //     }).then(response => response.json())
-        //       .then(data => console.log(data))
-        //       .catch(error => console.error('Error:', error));
-        // }
+        function sendData(endpoint, data) {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+              .then(data => {
+                  console.log(data);
+                  location.reload(); // Reload the page to show updated data
+              })
+              .catch(error => console.error('Error:', error));
+        }
+
         function sendRequestout(endpoint) {
             fetch(endpoint, {
                 method: 'POST'
@@ -285,31 +301,16 @@
             }).then(data => console.log(data))
               .catch(error => console.error('Error:', error));
         }
+
         function sendRequest(endpoint) {
             fetch(endpoint, {
                 method: 'POST'
             }).then(response => {
-                // if (response.ok) {
-                //     // window.location.href = '/';
-                // }
                 return response.json();
             }).then(data => {
                 console.log(data);
-                alert(data.message);  // 显示来自服务器的消息)
-            })
-              .catch(error => console.error('Error:', error));
-        }
-
-        function sendData(endpoint, data) {
-            fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-              .then(data => console.log(data))
-              .catch(error => console.error('Error:', error));
+                alert(data.message);  // 显示来自服务器的消息
+            }).catch(error => console.error('Error:', error));
         }
     </script>
 </body>
