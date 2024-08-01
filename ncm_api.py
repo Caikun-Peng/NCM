@@ -29,6 +29,9 @@ from ryu.lib import dpid as dpid_lib
 from ryu.lib import ofctl_v1_3
 from ryu.topology.api import get_switch, get_link, get_host
 
+from run import ncm
+net = ncm()
+
 LOG = logging.getLogger('ncm_api')
 
 with open('routing_table.json', 'r') as file:
@@ -304,63 +307,63 @@ class ncmController(ControllerBase):
     ## switches
     urlFlowSwitches = urlFlow + '/switches'
     @route('flow', urlFlowSwitches, methods=['GET'])
-    def listFlows(self, reg, **kwargs):
-        body = self.getFlow(reg, **kwargs)
+    def listFlows(self, req, **kwargs):
+        body = self.getFlow(req, **kwargs)
         return body
     # region
     @route('flow', urlFlowSwitches, methods=['PUT'])
-    def setFlows(self, reg, **kwargs): # set default routing rules
+    def setFlows(self, req, **kwargs): # set default routing rules
         print('set default routing rules')
-        body = self.putDefaultFlow(reg, **kwargs)
+        body = self.putDefaultFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowSwitches, methods=['DELETE'])
-    def delFlows(self, reg, **kwargs):
-        body = self.deleteFlow(reg, **kwargs)
+    def delFlows(self, req, **kwargs):
+        body = self.deleteFlow(req, **kwargs)
         return body
 
     urlFlowSwitch = urlFlowSwitches + '/{dpid}'
     @route('flow', urlFlowSwitch, methods=['GET'])
-    def listFlow(self, reg, **kwargs):
+    def listFlow(self, req, **kwargs):
         print('listFlow')
-        body = self.getFlow(reg, **kwargs)
+        body = self.getFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowSwitch, methods=['PUT'])
-    def setFlow(self, reg, **kwargs):
+    def setFlow(self, req, **kwargs):
         print('setFlow')
-        body = self.putFlow(reg, **kwargs)
+        body = self.putFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowSwitch, methods=['DELETE'])
-    def delFlow(self, reg, **kwargs):
-        body = self.deleteFlow(reg, **kwargs)
+    def delFlow(self, req, **kwargs):
+        body = self.deleteFlow(req, **kwargs)
         return body
 
     urlFlowSwitchTable = urlFlowSwitch + '/{tableID}'
     @route('flow', urlFlowSwitchTable, methods=['GET'])
-    def listFlowTable(self, reg, **kwargs):
-        body = self.getFlow(reg, **kwargs)
+    def listFlowTable(self, req, **kwargs):
+        body = self.getFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowSwitchTable, methods=['PUT'])
-    def setFlowTable(self, reg, **kwargs):
-        body = self.putFlow(reg, **kwargs)
+    def setFlowTable(self, req, **kwargs):
+        body = self.putFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowSwitchTable, methods=['DELETE'])
-    def delFlowTable(self, reg, **kwargs):
-        body = self.deleteFlow(reg, **kwargs)
+    def delFlowTable(self, req, **kwargs):
+        body = self.deleteFlow(req, **kwargs)
         return body
     # endregion
-    def getFlow(self, reg, **kwargs):
+    def getFlow(self, req, **kwargs):
         print('getFlow')
         try:
             if 'dpid' in kwargs:
                 dpids = [kwargs['dpid']]
             else:
                 print('no dpid input')
-                dpids = json.loads(self.get_dipds(reg, **kwargs))
+                dpids = json.loads(self.get_dipds(req, **kwargs))
             print(f'dpids: {dpids}')
             flows = []
             for switch_dpid in dpids:
@@ -409,9 +412,9 @@ class ncmController(ControllerBase):
             error_message = {'status': 'failure', 'reason': str(e)}
             return Response(content_type='application/json', body=json.dumps(error_message), status=500)
     
-    def putDefaultFlow(self, reg, **kwargs):
+    def putDefaultFlow(self, req, **kwargs):
         try:
-            dpids = json.loads(self.get_dipds(reg, **kwargs))
+            dpids = json.loads(self.get_dipds(req, **kwargs))
             for switch_dpid in dpids:
                 switch_dpid = parse_dpid(switch_dpid)
                 switch_name = dpidToSwitchName[switch_dpid][0]
@@ -434,9 +437,9 @@ class ncmController(ControllerBase):
             body = json.dumps({'status': 'failure', 'reason': str(e)})
             return Response(content_type='application/json', body=body, status=500)
 
-    def putFlow(self, reg, **kwargs):
+    def putFlow(self, req, **kwargs):
         try:
-            route = json.loads(str({reg.body.decode("utf-8")}).replace('\'',''))
+            route = json.loads(str({req.body.decode("utf-8")}).replace('\'',''))
             switch_dpid = parse_dpid(kwargs['dpid'])
             switch_name = dpidToSwitchName[switch_dpid][0]
             cookie  = route['cookie']
@@ -459,13 +462,13 @@ class ncmController(ControllerBase):
             body = json.dumps({'status': 'failure', 'reason': str(e)})
             return Response(content_type='application/json', body=body, status=500)
 
-    def deleteFlow(self, reg, **kwargs):
+    def deleteFlow(self, req, **kwargs):
         try:
             print(kwargs)
             if 'dpid' in kwargs:
                 dpids = [kwargs['dpid']]
             else: 
-                dpids = json.loads(self.get_dipds(reg, **kwargs))
+                dpids = json.loads(self.get_dipds(req, **kwargs))
             for switch_dpid in dpids:
                 switch_dpid = parse_dpid(switch_dpid)
                 switch_name = dpidToSwitchName[switch_dpid][0]
@@ -487,44 +490,44 @@ class ncmController(ControllerBase):
     ## deleted
     urlFlowDeleted = urlFlow + '/deleted'
     @route('flow', urlFlowDeleted, methods=['GET'])
-    def listDeletedFlows(self, reg, **kwargs):
-        dpids = json.loads(self.get_dipds(reg, **kwargs))
+    def listDeletedFlows(self, req, **kwargs):
+        dpids = json.loads(self.get_dipds(req, **kwargs))
         flows = {}
         for dpid in dpids:
             kwargs['dpid'] = dpid
             flows[str(dpid)] = []
-            flow = self.getDeletedFlow(reg, **kwargs)
+            flow = self.getDeletedFlow(req, **kwargs)
             flows[str(dpid)] = json.loads(flow)
         body = Response(content_type='application/json', body=json.dumps(flows))
         return body
 
     @route('flow', urlFlowDeleted, methods=['DELETE'])
-    def delDeletedFlows(self, reg, **kwargs):
-        body = self.deleteDeletedFlow(reg, **kwargs)
+    def delDeletedFlows(self, req, **kwargs):
+        body = self.deleteDeletedFlow(req, **kwargs)
         return body
     
     urlFlowDeletedSwitches = urlFlowDeleted + '/{dpid}'
     @route('flow', urlFlowDeletedSwitches, methods=['GET'])
-    def listDeletedFlow(self, reg, **kwargs):
+    def listDeletedFlow(self, req, **kwargs):
         print('listFlow')
-        body = self.getDeletedFlow(reg, **kwargs)
+        body = self.getDeletedFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowDeletedSwitches, methods=['DELETE'])
-    def delDeletedFlow(self, reg, **kwargs):
-        body = self.deleteDeletedFlow(reg, **kwargs)
+    def delDeletedFlow(self, req, **kwargs):
+        body = self.deleteDeletedFlow(req, **kwargs)
         return body
 
     urlFlowDeletedTables = urlFlowDeletedSwitches + '/{tableID}'
     @route('flow', urlFlowDeletedTables, methods=['GET'])
-    def listDeletedTable(self, reg, **kwargs):
+    def listDeletedTable(self, req, **kwargs):
         print('listFlow')
-        body = self.getDeletedFlow(reg, **kwargs)
+        body = self.getDeletedFlow(req, **kwargs)
         return body
 
     @route('flow', urlFlowDeletedTables, methods=['DELETE'])
-    def delDeletedTable(self, reg, **kwargs):
-        body = self.deleteDeletedFlow(reg, **kwargs)
+    def delDeletedTable(self, req, **kwargs):
+        body = self.deleteDeletedFlow(req, **kwargs)
         return body
 
     def getDeletedFlow(self, req, **kwargs):
@@ -577,7 +580,7 @@ class ncmController(ControllerBase):
             if 'dpid' in kwargs:
                 dpids = [kwargs['dpid']]
             else: 
-                dpids = json.loads(self.get_dipds(reg, **kwargs))
+                dpids = json.loads(self.get_dipds(req, **kwargs))
             for switch_dpid in dpids:
                 switch_dpid = parse_dpid(switch_dpid)
                 switch_name = dpidToSwitchName[switch_dpid][0]
@@ -596,6 +599,23 @@ class ncmController(ControllerBase):
             body = json.dumps({'status': 'failure', 'reason': str(e)})
             return Response(content_type='application/json', body=body, status=500)
 
+
+    # endregion
+
+    # region net
+    urlNet = '/net'
+    ## POST
+    @route('net', urlNet+'/start', methods=['POST'])
+    def startNet(self, req, **kwargs):
+        net.start()
+
+    @route('net', urlNet+'/stop', methods=['POST'])
+    def stopNet(self, req, **kwargs):
+        net.stop()
+
+    @route('net', urlNet+'/restart', methods=['POST'])
+    def restartNet(self, req, **kwargs):
+        net.restart()
 
     # endregion
 
