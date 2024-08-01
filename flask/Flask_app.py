@@ -6,7 +6,7 @@ import re
 import os
 import shutil
 from flask_session import Session
-
+import json
 # Initialize Flask application
 app = Flask(__name__)
 # RYU_CONTROLLER_URL = 'http://127.0.0.1:8080'
@@ -59,6 +59,26 @@ def reconnect_network():
         flash(f'Error connection: {e}')
         print(f"Error connection: {e}")
 
+def read_whitelist():
+    whitelist_file = os.path.join(os.path.abspath(os.path.dirname(app.root_path)), 'whitelist.json')
+    if os.path.exists(whitelist_file):
+        with open(whitelist_file, 'r') as f:
+            return json.load(f)
+    return []
+def write_whitelist(data):
+    filepath = os.path.join(os.path.abspath(os.path.dirname(app.root_path)), 'whitelist_to_add.json')
+    print(os.path.dirname(app.root_path))
+    print('data:',data,type(data))
+    table = []
+    for item in data:
+        web = {}
+        if item['block'] == 'Y':
+            web['name']=item['name']
+            web['ip']=item['ip']
+            table.append(web)
+    
+    with open(filepath, 'w') as f:
+        json.dump(table, f, indent=4)
 # # Update whitelist according to the data from web
 # def update_whitelist(whitelist):
 #     for list in whitelist:
@@ -118,11 +138,13 @@ def transform_flow_data(flow_table):
         flows = switch.get('flows', [])
         
         for flow in flows:
+            Table = flow.get('table')
             priority = flow.get('priority')
             match = ', '.join([f"{key}:{value}" for key, value in flow.items() if key.startswith('ip') or key.startswith('nw')])
             action = flow.get('actions')
             
             transformed_data.append({
+                'Table': Table,
                 'Priority': priority,
                 'MATCH': match,
                 'ACTION': action
@@ -165,6 +187,20 @@ def block_access(cellid, hostNo):
     except requests.exceptions.RequestException as e:
         flash(f'Error blocked: {e}')
         print(f"Error blocked: {e}")
+def unblock_host(cellid, hostNo):
+    try:
+        # dpid = f'{cellid + 256:x}'  # Convert dpid to hexadecimal string
+        dpid = cellid + 256
+        portNo = hostNo + 1
+
+        response = requests.delete(f'http://127.0.0.1:8080/flow/deleted/{dpid}/{portNo}')
+        response.raise_for_status()
+        print('True')
+        flash('Successfully Unblocked')
+        print("Unblocked Successfully")
+    except requests.exceptions.RequestException as e:
+        flash(f'Error unblocked: {e}')
+        print(f"Error unblocked: {e}")
 
 # Limit Bandwidth to 1MB/s, burst 0.1MB/s
 def limit_bandwidth(cellid, hostNo):
@@ -346,8 +382,8 @@ def login():
             # else:
             #     return redirect('/home')
                     # Check if 'switches_hosts' is not in the session, then fetch the data
-            if 'switches_hosts' not in session:
-                session['switches_hosts'] = get_switches_hostsnum()
+            # if 'switches_hosts' not in session:
+            session['switches_hosts'] = get_switches_hostsnum()
             
             print(session['switches_hosts'])
             return redirect('/home')
@@ -380,6 +416,18 @@ def disconnect_all():
 def reconnect_all():
     reconnect_network()
     return jsonify({'message': 'All devices reconnected successfully'})
+
+@app.route('/whitelist', methods=['POST','GET'])
+def whitelist_1():
+    new_data = request.json
+    write_whitelist(new_data)
+    netRestart()
+    return redirect('/home')
+
+# @app.route('/restart', methods=['POST'])
+def netRestart():
+    response = requests.post('http://127.0.0.1:8080/net/restart')
+
 
 # cell buttones===============================
 @app.route('/disconnectCell', methods=['POST'])
@@ -501,6 +549,7 @@ def reset_host():
             return jsonify({'message': 'Cell ID is missing'}), 400
         
         try:
+            unblock_host(cell_id, host_id)
             reset_bandwidth(cell_id, host_id)
             return jsonify({'message': f'Cell {cell_id} Host {host_id} reset successfully'})
         except Exception as e:
@@ -550,16 +599,15 @@ def home():
      # # Sort switches_hosts by dpid
     # switches_hosts_sorted = sorted(switches_hosts, key=lambda x: int(x[0], 16))
     # # cells = [f'cell{i+1}' for i in range(len(switches_hosts_sorted))]
-    
+    whitelist = read_whitelist()   #------
+    print(whitelist)
     if switches_hosts is None:
         return redirect('/')
     # if switches_hosts is not None:
     else:
         Num_switches = len(switches_hosts)
         create_cell_host_pages(switches_hosts)
-        return render_template('home.html', N = Num_switches)
-
-    return render_template('home.html', N = Num_switches)
+        return render_template('home.html', N = Num_switches, whitelist=whitelist)
 
 
 # Route for current cell page

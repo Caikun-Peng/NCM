@@ -132,13 +132,15 @@
         <table id="table3">
             <thead>
                 <tr>
-                    <th style="width: 33%;">Priority</th>
-                    <th style="width: 33%;">MATCH</th>
-                    <th style="width: 33%;">ACTION</th>
+                    <th style="width: 25%;">Table</th>
+                    <th style="width: 25%;">Priority</th>
+                    <th style="width: 25%;">MATCH</th>
+                    <th style="width: 25%;">ACTION</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
+                    <td class="input-cell"><div contentEditable="true"></div></td>
                     <td class="input-cell"><div contentEditable="true"></div></td>
                     <td class="input-cell"><div contentEditable="true"></div></td>
                     <td class="input-cell"><div contentEditable="true"></div></td>
@@ -173,6 +175,7 @@
                         data.forEach(rule => {
                             const newRow = document.createElement('tr');
                             newRow.innerHTML = `
+                                <td class="input-cell"><div contentEditable="true">${rule.Table}</div></td>
                                 <td class="input-cell"><div contentEditable="true">${rule.Priority}</div></td>
                                 <td class="input-cell"><div contentEditable="true">${rule.MATCH}</div></td>
                                 <td class="input-cell"><div contentEditable="true">${rule.ACTION}</div></td>
@@ -187,6 +190,7 @@
         function addEmptyRow(tableBody) {
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
+                <td class="input-cell"><div contentEditable="true"></div></td>
                 <td class="input-cell"><div contentEditable="true"></div></td>
                 <td class="input-cell"><div contentEditable="true"></div></td>
                 <td class="input-cell"><div contentEditable="true"></div></td>
