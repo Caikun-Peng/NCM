@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .login-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px; /* Fixed width for demonstration */
+        }
+        .login-container input[type="text"], 
+        .login-container input[type="password"], 
+        .login-container button {
+            width: 100%;
+            height: 30px; /* Reduce the height of the input fields */
+            padding: 5px; /* Add padding to the input fields for spacing */
+            margin: 15px 0;
+            border: 1px solid #004a63;
+            border-radius: 5px;
+            box-sizing: border-box; /* Ensure padding does not affect width */
+        }
+        .login-container button {
+            background-color: #004a63;
+            color: white;
+            border: none;
+            cursor: pointer;
+            height: 40px; /* Set a different height for the button */
+        }
+        .login-container button:hover {
+            background-color: #00354a;
+        }
+        label {
+            display: block; /* Ensure labels are block elements for proper layout */
+            margin-top: 10px;
+            color: #004a63; /* Optional: Change label color to match theme */
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <form id="loginForm" action="/" method="POST">
+            <label for="username">User</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

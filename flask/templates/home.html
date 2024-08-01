@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #546e7a;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 10px;
+            display: inline-block;
+        }
+        .navbar a:hover {
+            background-color: #415a64;
+        }
+        .top-right-button {
+            background-color: #546e7a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .top-right-button:hover {
+            background-color: #415a64;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Changed to 4 columns per row */
+            gap: 10px;
+            padding: 20px;
+            background-color: #546e7a;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .cell {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #cccccc; /* Updated border color */
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%; /* Ensure it spans the entire grid cell */
+            box-sizing: border-box;
+        }
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        .cell-button {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #cccccc; /* Updated border color */
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%; /* Ensure it spans the entire grid cell */
+            box-sizing: border-box;
+            display: inline-block; /* Make sure it behaves like a div */
+            font-size: 16px; /* Match the font size */
+        }
+        .cell-button:hover {
+            background-color: #e0e0e0;
+        }
+        .content {
+            display: none;
+            margin: 10px auto;
+            width: 90%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .input-cell {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+        }
+        .input-cell div {
+            min-height: 24px;
+            line-height: 24px;
+            display: flex;
+            align-items: center;
+        }
+        .block-btn {
+            background-color: #e0e0e0;
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .block-btn.yes {
+            background-color: #00a651;
+            color: white;
+        }
+        .block-btn.no {
+            background-color: #f44336;
+            color: white;
+        }
+        .block-btn.selected {
+            border: 2px solid black;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .buttons button {
+            background-color: #546e7a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .buttons button:hover {
+            background-color: #415a64;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><a href="">Home</a></div>
+        <p>CONTROL CENTER</p>
+        <button class="top-right-button" type="button" onclick="sendRequestout('/logout')">Log Out</button> 
+    </div>
+
+    
+
+    <div class="container">
+        <div class="cell" onclick="showContent('section1')">SWITCHES</div>
+        <div class="cell" onclick="showContent('section2')">WHITELIST</div>
+        
+    </div>
+    <div id="section1" class="content">
+        <h2>SWITCHES</h2>
+
+        
+        <div class="container">
+            {% for i in range(N) %}
+               <form method="post" action="{{ url_for('home') }}">
+                   <input type="hidden" name="cell_id" value="{{ i+1 }}">
+                   <button type="submit" class="cell-button">Cell {{ i+1 }}</button>
+               </form>
+            {% endfor %}
+        </div>
+
+        <div class="buttons">
+            <button class="top-right-button" onclick="sendRequest('/disconnect')">Disconnect All</button>
+            <button class="top-right-button" onclick="sendRequest('/reconnect')">Reconnect All</button>
+        </div>
+    
+    </div>
+    <div id="section2" class="content">
+        <h2>WHITELIST</h2>
+        <table id="table2">
+            <thead>
+                <tr>
+                    <th style="width: 45%;">URL</th>
+                    <th style="width: 45%;">IP</th>
+                    <th style="width: 10%;">Block Selected IP/URL</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="buttons">
+            <button class="top-right-button" onclick="addRow('table2')">Add</button>
+            <button class="top-right-button" onclick="finalConfirm('table2')">Apply</button>
+        </div>
+    </div>
+        <script>
+        function showContent(sectionId) {
+            const sections = document.querySelectorAll('.content');
+            sections.forEach(section => section.style.display = 'none');
+            const sectionToShow = document.getElementById(sectionId);
+            sectionToShow.style.display = 'block';
+        }
+
+        function addRow(tableId) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            const newRow = document.createElement('tr');
+            const createInputCell = () => {
+                const cell = document.createElement('td');
+                cell.className = 'input-cell';
+                const input = document.createElement('div');
+                input.contentEditable = 'true';
+                cell.appendChild(input);
+                return cell;
+            };
+            if (tableId === 'table2') {
+                newRow.appendChild(createInputCell());
+                newRow.appendChild(createInputCell());
+                const cell = document.createElement('td');
+                cell.className = 'input-cell';
+                const blockYButton = document.createElement('button');
+                blockYButton.className = 'block-btn yes';
+                blockYButton.textContent = 'Y';
+                blockYButton.onclick = function() {
+                    toggleBlockStatus(this, 'Y');
+                };
+                const blockNButton = document.createElement('button');
+                blockNButton.className = 'block-btn no';
+                blockNButton.textContent = 'N';
+                blockNButton.onclick = function() {
+                    toggleBlockStatus(this, 'N');
+                };
+                cell.appendChild(blockYButton);
+                cell.appendChild(blockNButton);
+                newRow.appendChild(cell);
+            } 
+            tableBody.appendChild(newRow);
+        }
+        // function 
+        function toggleBlockStatus(button, status) {
+            const buttons = button.parentElement.querySelectorAll('.block-btn');
+            buttons.forEach(btn => {
+                if (btn === button) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        function finalConfirm(tableId) {
+            const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+            const data = [];
+            rows.forEach(row => {
+                const rowData = [];
+                const cells = row.querySelectorAll('.input-cell div');
+                cells.forEach(cell => rowData.push(cell.textContent));
+                data.push(rowData);
+            });
+            const endpoint = tableId === 'table2' ? '/whitelist' : '/flow_rules';
+            sendData(endpoint, data);
+        }
+
+        // function sendRequest(endpoint) {
+        //     fetch(endpoint, {
+        //         method: 'POST'
+        //     }).then(response => response.json())
+        //       .then(data => console.log(data))
+        //       .catch(error => console.error('Error:', error));
+        // }
+        function sendRequestout(endpoint) {
+            fetch(endpoint, {
+                method: 'POST'
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/';
+                    body: JSON.stringify(data)
+                }
+                return response.json();
+            }).then(data => console.log(data))
+              .catch(error => console.error('Error:', error));
+        }
+        function sendRequest(endpoint) {
+            fetch(endpoint, {
+                method: 'POST'
+            }).then(response => {
+                // if (response.ok) {
+                //     // window.location.href = '/';
+                // }
+                return response.json();
+            }).then(data => {
+                console.log(data);
+                alert(data.message);  // 显示来自服务器的消息)
+            })
+              .catch(error => console.error('Error:', error));
+        }
+
+        function sendData(endpoint, data) {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+              .then(data => console.log(data))
+              .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
