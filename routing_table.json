@@ -1,0 +1,246 @@
+{
+  "0000000000000001": [
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:1"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.0/24"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:1"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.0/24"
+      },
+      "table": "1"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:2"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.1.0/24"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:2"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.1.0/24"
+      },
+      "table": "2"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 11,
+      "actions": [
+        "goto_table:3"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.1"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 11,
+      "actions": [
+        "output:3"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.1"
+      },
+      "table": "3"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:4"
+      ],
+      "match": {
+        "ip,nw_dst": "10.1.0.1"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:4"
+      ],
+      "match": {
+        "ip,nw_dst": "10.1.0.1"
+      },
+      "table": "4"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:5"
+      ],
+      "match": {
+        "ip,nw_dst": "10.1.0.2"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:5"
+      ],
+      "match": {
+        "ip,nw_dst": "10.1.0.2"
+      },
+      "table": "5"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:6"
+      ],
+      "match": {
+        "ip,nw_dst": "10.1.0.3"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:6"
+      ],
+      "match": {
+        "ip,nw_dst": "10.1.0.3"
+      },
+      "table": "6"
+    }
+  ],
+  "0000000000000101": [
+    {
+      "cookie": "0x0",
+      "priority": 1,
+      "actions": [
+        "output:1"
+      ],
+      "match": {},
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:2"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.2"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:2"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.2"
+      },
+      "table": "2"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:3"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.3"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:3"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.0.3"
+      },
+      "table": "3"
+    }
+  ],
+  "0000000000000102": [
+    {
+      "cookie": "0x0",
+      "priority": 1,
+      "actions": [
+        "output:1"
+      ],
+      "match": {},
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:2"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.1.2"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:2"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.1.2"
+      },
+      "table": "2"
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "goto_table:3"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.1.3"
+      },
+      "table": 0
+    },
+    {
+      "cookie": "0x0",
+      "priority": 10,
+      "actions": [
+        "output:3"
+      ],
+      "match": {
+        "ip,nw_dst": "10.0.1.3"
+      },
+      "table": "3"
+    }
+  ]
+}
