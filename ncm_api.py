@@ -2,11 +2,11 @@
 Code Author: Peng, Caikun
 File Name: ncm_api.py
 Create Date: 20/07/2024 
-Edited Date: 20/07/2024
+Edited Date: 01/08/2024
 Description: REST API for switch configuration, 
     get more information in project wiki:
     https://github.com/Caikun-Peng/TELE4642_Lab/wiki/REST-API-Documentation
-Dependencies: json, ryu, subprocess
+Dependencies: json, ryu, subprocess, logging, os
 '''
 
 import logging
@@ -216,9 +216,7 @@ class ncmController(ControllerBase):
                 dpid = dpid_lib.str_to_dpid(dpid)
             switches = get_switch(self.ncm_api_app, dpid)
             switchesTemp = json.dumps([switch.to_dict() for switch in switches])
-            # print(f'switchesTemp: {switchesTemp}')
             dpids = self.get_dpid(switchesTemp)
-            # print(f'dpids_initial: {dpids}')
 
             portRate = []
             for dpid in dpids:
@@ -227,11 +225,9 @@ class ncmController(ControllerBase):
                 if 'portNum' in kwargs:
                     portNum = parse_portNum(kwargs['portNum'])
                 port_name = self.get_port_names(switchesTemp, [dpid], portNum)
-                # print(f'port_name: {port_name}')
 
                 port_info = []
                 for portName in port_name:
-                    # print(f'portName:{portName}')
                     cmd = f'ovs-vsctl list interface {portName}'
                     process = subprocess.run(cmd.split(), check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                     output = process.stdout
@@ -268,9 +264,7 @@ class ncmController(ControllerBase):
                 dpid = dpid_lib.str_to_dpid(dpid)
             switches = get_switch(self.ncm_api_app, dpid)
             switchesTemp = json.dumps([switch.to_dict() for switch in switches])
-            # print(f'switchesTemp: {switchesTemp}')
             dpids = self.get_dpid(switchesTemp)
-            # print(f'dpids_initial: {dpids}')
 
             rate_limit = json.loads(req.body)
             rate = rate_limit.get('rate', None)
@@ -282,7 +276,6 @@ class ncmController(ControllerBase):
                     if 'portNum' in kwargs:
                         portNum = parse_portNum(kwargs['portNum'])
                     port_name = self.get_port_names(switchesTemp, dpid, portNum)
-                    # print(f'port_name: {port_name}')
 
                     body = []
                     for portName in port_name:
@@ -290,7 +283,7 @@ class ncmController(ControllerBase):
                         os.system(command)
                         command = f'ovs-vsctl set interface {portName} ingress_policing_burst={burst}'
                         os.system(command)
-                        info = f'Set switch {dpid} port {portName} rate to {rate} kbps and burst to {burst} kbps'
+                        info = f'Set switch {dpid} port {portName} rate to {rate} kbps and burst to {burst} kB/s'
                         print(info)
                         body.append(info)
                     
@@ -361,7 +354,6 @@ class ncmController(ControllerBase):
         return body
     # endregion
     def getFlow(self, reg, **kwargs):
-        import subprocess
         print('getFlow')
         try:
             if 'dpid' in kwargs:
@@ -403,7 +395,7 @@ class ncmController(ControllerBase):
                                 element_dict[key.strip()] = value.strip()
                     if 'tableID' in kwargs:
                         print(f'tableID, {type(kwargs["tableID"])}, {kwargs["tableID"]}')
-                        print(f'table_id, {type(element_dict["table"])}, {element_dict["table"]}')
+                        print(f'table, {type(element_dict["table"])}, {element_dict["table"]}')
                         if element_dict['table'] == kwargs['tableID']:
                             print('true')
                             dicts.append(element_dict)
@@ -428,9 +420,9 @@ class ncmController(ControllerBase):
                     priority = route['priority']
                     actions = ",".join(route["actions"])
                     match = route['match']
-                    table_id = route['table_id']
+                    table = route['table']
                     match_str = ",".join([f"{key}={value}" for key, value in match.items()])
-                    set_route = f'ovs-ofctl add-flow {switch_name} "table={table_id},priority={priority},{match_str},actions={actions}"'
+                    set_route = f'ovs-ofctl add-flow {switch_name} "table={table},priority={priority},{match_str},actions={actions}"'
                     try: 
                         state = os.system(set_route)
                     except Exception as e:
@@ -452,11 +444,11 @@ class ncmController(ControllerBase):
             actions = ",".join(route["actions"])
             match = route['match']
             if 'tableID' in kwargs:
-                table_id = kwargs['tableID']
+                table = kwargs['tableID']
             else:
-                table_id = route['table']
+                table = route['table']
             match_str = ",".join([f"{key}={value}" for key, value in match.items()])
-            set_route = f'ovs-ofctl add-flow {switch_name} "cookie={cookie},table={table_id},priority={priority},{match_str},actions={actions}"'
+            set_route = f'ovs-ofctl add-flow {switch_name} "cookie={cookie},table={table},priority={priority},{match_str},actions={actions}"'
             state = os.system(set_route)
             if state == 256:  
                 body = json.dumps({'status': 'failure', 'reason': 'ovs-ofctl error'})
@@ -478,10 +470,10 @@ class ncmController(ControllerBase):
                 switch_dpid = parse_dpid(switch_dpid)
                 switch_name = dpidToSwitchName[switch_dpid][0]
                 if 'tableID' in kwargs:
-                    table_id = kwargs['tableID']
+                    table = kwargs['tableID']
                 else: 
-                    table_id = 0
-                set_route = f'ovs-ofctl add-flow {switch_name} "cookie=0xf,table={table_id},priority=65535,actions="'
+                    table = 0
+                set_route = f'ovs-ofctl add-flow {switch_name} "cookie=0xf,table={table},priority=65535,actions="'
                 state = os.system(set_route)
                 if state == 256:  
                     body = json.dumps({'status': 'failure', 'reason': 'ovs-ofctl error'})
@@ -502,9 +494,7 @@ class ncmController(ControllerBase):
             kwargs['dpid'] = dpid
             flows[str(dpid)] = []
             flow = self.getDeletedFlow(reg, **kwargs)
-            # print(type(flow),'\n',flow)
             flows[str(dpid)] = json.loads(flow)
-        # print(type(flows),'\n',flows)
         body = Response(content_type='application/json', body=json.dumps(flows))
         return body
 
@@ -546,7 +536,6 @@ class ncmController(ControllerBase):
             switch_name = dpidToSwitchName[switch_dpid][0]
             command = ["ovs-ofctl", "dump-flows", switch_name]
             flows = subprocess.check_output(command, text=True)
-            # print(flows)
             data=flows.split('\n',)
             del data[0]
             del data[-1] 
@@ -570,7 +559,7 @@ class ncmController(ControllerBase):
                 if element_dict['cookie'] == '0xf':
                     if 'tableID' in kwargs:
                         print(f'tableID, {type(kwargs["tableID"])}, {kwargs["tableID"]}')
-                        print(f'table_id, {type(element_dict["table"])}, {element_dict["table"]}')
+                        print(f'table, {type(element_dict["table"])}, {element_dict["table"]}')
                         if element_dict['table'] == kwargs['tableID']:
                             print('true')
                             dicts.append(element_dict)
@@ -593,10 +582,10 @@ class ncmController(ControllerBase):
                 switch_dpid = parse_dpid(switch_dpid)
                 switch_name = dpidToSwitchName[switch_dpid][0]
                 if 'tableID' in kwargs:
-                    table_id = kwargs['tableID']
+                    table = kwargs['tableID']
                 else: 
-                    table_id = 0
-                set_route = f'ovs-ofctl del-flows {switch_name} "cookie=0xf/-1,table={table_id}"'
+                    table = 0
+                set_route = f'ovs-ofctl del-flows {switch_name} "cookie=0xf/-1,table={table}"'
                 state = os.system(set_route)
                 if state == 256:  
                     body = json.dumps({'status': 'failure', 'reason': 'ovs-ofctl error'})
@@ -615,18 +604,13 @@ class ncmController(ControllerBase):
         switches = json.loads(switches)
         dpid = []
         for switch in switches:
-            # print(f'get_dpid.switch: {switch}')
             dpid.append(switch['dpid'])
         return dpid
 
     def get_port_names(self, switches, dpid, port_no=None):
         switches = json.loads(switches)
-        # print(f'get_port_names.switches: {switches}')
-        # print(f'get_port_names.dpid_initial: {dpid}')
         dpids = [parse_dpid(dpid)]
-        # print(f'get_port_names.dpids: {dpids}')
         for dpid in dpids:
-            # print(f'get_port_names.dpid: {dpid}')
             for switch in switches:
                 if switch["dpid"] == dpid:
                     if port_no is None:
@@ -640,27 +624,22 @@ class ncmController(ControllerBase):
     # endregion
 
 def parse_dpid(dpid_str):
-    # print(f'parse_dpid.dpid_str: {dpid_str}')
-    # print(type(dpid_str))
     try:
         if isinstance(dpid_str, list):
             for dpid in dpid_str:
                 if int(dpid[0]):
                     dpid = int(dpid)
-                    # print(f"converte to 0x: {dpid}")
                     return f"{dpid:016x}"
                 else: 
                     return dpid
         elif isinstance(dpid_str, str):
             if int(dpid_str[0]):
                 dpid_str = int(dpid_str)
-                # print(f"converte to 0x: {dpid_str}")
                 return f"{dpid_str:016x}"
             else: 
                 return dpid_str
         elif isinstance(dpid_str, int):
             if str(dpid_str)[0]:
-                # print(f"converte to 0x: {dpid_str}")
                 return f"{dpid_str:016x}"
             else: 
                 return dpid_str
@@ -668,7 +647,6 @@ def parse_dpid(dpid_str):
         return dpid_str
 
 def parse_portNum(portNum_str):
-    # print(f'parse_portNum.portNum_str: {portNum_str}')
     try:
         portNum = int(portNum_str)
         return f"{portNum:08x}"
@@ -716,7 +694,6 @@ class ncmAPI(app_manager.RyuApp):
                  ofp_event.EventOFPPortDescStatsReply
                  ], MAIN_DISPATCHER)
     def stats_reply_handler(self, ev):
-        # print('stats_reply_handler')
         msg = ev.msg
         dp = msg.datapath
 
