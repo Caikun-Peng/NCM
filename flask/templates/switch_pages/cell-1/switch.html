@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #546e7a;
+            padding: 10px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 10px;
+            display: inline-block;
+        }
+        .navbar a:hover {
+            background-color: #415a64;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .top-right-button {
+            background-color: #546e7a;
+            
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .top-right-button:hover {
+            background-color: #415a64;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background-color: #546e7a;
+            margin: 20px;
+            border-radius: 10px;
+        }
+        .cell {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #cccccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        .content {
+            display: none;
+            margin: 10px auto;
+            width: 90%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .input-cell {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+        }
+        .input-cell div {
+            min-height: 24px;
+            line-height: 24px;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div><a href="../../home">Home</a></div>
+        <p>=== CELL 1 ===</p>
+        <button class="top-right-button" type="button" onclick="sendRequestout('/logout')">Log Out</button> 
+    </div>
+    <div class="container">
+        <div class="cell" onclick="showContent('section1')">USERS</div>
+        <div class="cell" onclick="showContent('section3'); loadFlowRules('1')">FLOW RULES</div>
+    </div>
+    <div id="section1" class="content">
+        <h2>USERS</h2>
+        
+        <div class="container">
+
+            
+            
+               <div class="cell" onclick="location.href='./host-1.html' ">Host 1</div>
+            
+               <div class="cell" onclick="location.href='./host-2.html' ">Host 2</div>
+            
+ 
+        </div>
+        <div class="buttons">
+            <button class="top-right-button" onclick="sendRequest('/disconnectCell', '1')">Disconnect This Cell</button>
+            <button class="top-right-button" onclick="sendRequest('/reconnectCell', '1')">Reconnect This Cell</button>
+        </div>
+    </div>
+    <div id="section3" class="content">
+        <h2>FLOW RULES</h2>
+        <table id="table3">
+            <thead>
+                <tr>
+                    <th style="width: 33%;">Priority</th>
+                    <th style="width: 33%;">MATCH</th>
+                    <th style="width: 33%;">ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="input-cell"><div contentEditable="true"></div></td>
+                    <td class="input-cell"><div contentEditable="true"></div></td>
+                    <td class="input-cell"><div contentEditable="true"></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function showContent(sectionId) {
+            const sections = document.querySelectorAll('.content');
+            sections.forEach(section => section.style.display = 'none');
+            const sectionToShow = document.getElementById(sectionId);
+            sectionToShow.style.display = 'block';
+        }
+        
+        function loadFlowRules(data) {
+            fetch('/flow_rules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                
+                .then(data => {
+                    const tableBody = document.querySelector('#table3 tbody');
+                    tableBody.innerHTML = ''; // Clear the table
+                    if (data.length === 0) {
+                        addEmptyRow(tableBody); // Add an empty row if no data
+                    } else {
+                        data.forEach(rule => {
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td class="input-cell"><div contentEditable="true">${rule.Priority}</div></td>
+                                <td class="input-cell"><div contentEditable="true">${rule.MATCH}</div></td>
+                                <td class="input-cell"><div contentEditable="true">${rule.ACTION}</div></td>
+                            `;
+                            tableBody.appendChild(newRow);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function addEmptyRow(tableBody) {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="input-cell"><div contentEditable="true"></div></td>
+                <td class="input-cell"><div contentEditable="true"></div></td>
+                <td class="input-cell"><div contentEditable="true"></div></td>
+            `;
+            tableBody.appendChild(newRow);
+        }
+
+        // function sendRequest(endpoint) {
+        //     fetch(endpoint, {
+        //         method: 'POST'
+        //     }).then(response => response.json())
+        //       .then(data => console.log(data))
+        //       .catch(error => console.error('Error:', error));
+        // }
+        function sendRequestout(endpoint) {
+            fetch(endpoint, {
+                method: 'POST'
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/';
+                    body: JSON.stringify(data)
+                }
+                return response.json();
+            }).then(data => console.log(data))
+              .catch(error => console.error('Error:', error));
+        }
+        // function sendRequest(endpoint, data) {
+        //     fetch(endpoint, {
+        //         method: 'POST'
+        //     }).then(response => {
+        //         if (response.ok) {
+        //             // window.location.href = '/home';
+        //             body: JSON.stringify(data)
+        //         }
+        //         return response.json();
+        //     }).then(data => console.log(data))
+        //       .catch(error => console.error('Error:', error));
+        // }
+        function sendRequest(endpoint, data) {
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Network response was not ok.');
+                }
+            }).then(data => {
+                console.log(data);
+                alert(data.message);  // 显示来自服务器的消息
+            }).catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
