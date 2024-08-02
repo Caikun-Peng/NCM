@@ -73,3 +73,4 @@ if __name__ == '__main__':
     net = ncm()
     ryu_process = subprocess.Popen(['xterm', '-e', 'ryu-manager ncm_api.py'])
     net.start()
+    flask_process = subprocess.Popen(['xterm', '-e', 'cd flask \n python3 Flask_app.py'])
