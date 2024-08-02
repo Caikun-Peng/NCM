@@ -17,7 +17,8 @@ and dynamic web page generation based on network topology.
 4. **Whitelist Management**: Read and write whitelist data for network devices.
 
 ## File Structure
-``` markdown
+
+``` 
 flask/
 ├── app.py                     # The main Flask application file.
 ├── templates/                 # Directory containing HTML templates.
@@ -44,85 +45,76 @@ flask/
 
 1. **Install Dependencies**: 
 
-pip install flask
-pip install flask-login
-pip install flask-session
-pip install requests
+    ``` bash
+    pip install flask flask-login flask-session requests
+    ```
 
 2. **Run the Application**:
 
-python Flask_app.py
+    ``` bash
+    python Flask_app.py
+    ```
 
-2. **Code Description**:
+# Code Description
 
 ## Routes
 
 ### Authentication Routes
 
 - **Login Route**: `/`
-- **Methods**: `GET`, `POST`
-- **Description**: Handles user login. On successful login, redirects to the home page.
-
+  - **Methods**: `GET`, `POST`
+  - **Description**: Handles user login. On successful login, redirects to the home page.
 - **Logout Route**: `/logout`
-- **Methods**: `POST`
-- **Description**: Logs out the current user and redirects to the login page.
+  - **Methods**: `POST`
+  - **Description**: Logs out the current user and redirects to the login page.
 
 ### Home Routes
 
 - **Home Route**: `/home`
-- **Methods**: `GET`, `POST`
-- **Description**: Displays the home page with switch information and whitelist data. 
-  Allows navigation to individual switch pages.
+  - **Methods**: `GET`, `POST`
+  - **Description**: Displays the home page with switch information and whitelist data. Allows navigation to individual switch pages.
 
 ### Network Management Routes
 
 - **Disconnect All Devices**: `/disconnect`
-- **Methods**: `POST`
-- **Description**: Disconnects all network devices.
-
+  - **Methods**: `POST`
+  - **Description**: Disconnects all network devices.
 - **Reconnect All Devices**: `/reconnect`
-- **Methods**: `POST`
-- **Description**: Reconnects all network devices.
-
+  - **Methods**: `POST`
+  - **Description**: Reconnects all network devices.
 - **Whitelist Management**: `/whitelist`
-- **Methods**: `POST`, `GET`
-- **Description**: Updates the whitelist and restarts the network.
+  - **Methods**: `POST`, `GET`
+  - **Description**: Updates the whitelist and restarts the network.
 
 ### Switch Management Routes
 
 - **Switch Page**: `/switch_pages/<cell>/<filename>`
-- **Methods**: `GET`, `POST`
-- **Description**: Displays the page for a specific switch, including the hosts connected to it.
-
+  - **Methods**: `GET`, `POST`
+  - **Description**: Displays the page for a specific switch, including the hosts connected to it.
 - **Disconnect Switch**: `/disconnectCell`
-- **Methods**: `POST`
-- **Description**: Disconnects a specific switch.
-
+  - **Methods**: `POST`
+  - **Description**: Disconnects a specific switch.
 - **Reconnect Switch**: `/reconnectCell`
-- **Methods**: `POST`
-- **Description**: Reconnects a specific switch.
-
+  - **Methods**: `POST`
+  - **Description**: Reconnects a specific switch.
 - **Get Flow Rules**: `/flow_rules`
-- **Methods**: `GET`, `POST`
-- **Description**: Fetches the flow rules for a specific switch.
+  - **Methods**: `GET`, `POST`
+  - **Description**: Fetches the flow rules for a specific switch.
 
 ### Host Management Routes
 
 - **Disconnect Host**: `/disconnectHost`
-- **Methods**: `POST`
-- **Description**: Disconnects a specific host.
-
+  - **Methods**: `POST`
+  - **Description**: Disconnects a specific host.
 - **Limit Host Bandwidth**: `/limit_speed`
-- **Methods**: `POST`
-- **Description**: Limits the bandwidth for a specific host.
-
+  - **Methods**: `POST`
+  - **Description**: Limits the bandwidth for a specific host.
 - **Reset Host**: `/restoreHost`
-- **Methods**: `POST`
-- **Description**: Resets the connection and bandwidth for a specific host.
-
+  - **Methods**: `POST`
+  - **Description**: Resets the connection and bandwidth for a specific host.
 - **Get Host Data Usage**: `/data_usage`
-- **Methods**: `GET`, `POST`
-- **Description**: Fetches the data usage for a specific host.
+  - **Methods**: `GET`, `POST`
+  - **Description**: Fetches the data usage for a specific host.
 
 ## Functions
 
