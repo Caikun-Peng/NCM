@@ -46,7 +46,7 @@ where
 - **Host**: Host node represents the terminal device in the network.
 - **Switch**: Switch node connecta multiple hosts and manage traffic.
 - **Monitor/Firewall**: Monitoring or firewall devices for network security and traffic monitoring.
-- **Internet websites** and **Local Server**: Other _hosts_ simulated as internet webs and local server
+- **Whitelisting websites** and **Local Server**: Other _hosts_ simulated as internet webs and local server
 - **Ryu Controller**: Controller communicates with the switch and monitor through the OpenFlow protocol.
 - **Application**: Application sents REST API based information in ryu controller
 - **Logger**: Logger records network activity logs (if necessary).
