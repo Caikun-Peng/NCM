@@ -1,9 +1,10 @@
-
 # Flask Application Documentation
 
 ## Overview
 
-This Flask application is designed to interact with an SDN (Software-Defined Networking) controller (RYU). It includes functionalities for user authentication, network switch and host management, and dynamic web page generation based on network topology.
+This Flask application is designed to interact with an SDN (Software-Defined Networking) controller (RYU). 
+It includes functionalities for user authentication, network switch and host management, 
+and dynamic web page generation based on network topology.
 
 ## Key Features
 
@@ -16,32 +17,28 @@ This Flask application is designed to interact with an SDN (Software-Defined Net
 4. **Whitelist Management**: Read and write whitelist data for network devices.
 
 ## File Structure
-
-- `app.py`: The main Flask application file.
-- `templates/`: Directory containing HTML templates.
-  - `switch_pages/`: Directory containing dynamically generated switch and host pages.
-  - `home.html`: Home page template.
-  - `login.html`: Login page template.
-  - `cell_model.html`: Template for switch pages.
-  - `host_model.html`: Template for host pages.
-
-  ```plaintext
-my_flask_app/
-├── app.py
-├── templates/
-│   ├── login.html
-│   ├── home.html
-│   └── switch_pages/
-│       ├── cell1(switch1)/
-│       │   ├── switch.html
-│       │   ├── host-1.html
-│       │   ├── host-2.html
+``` markdown
+flask/
+├── app.py                     # The main Flask application file.
+├── templates/                 # Directory containing HTML templates.
+│   ├── login.html             # Template for the login page.
+│   ├── home.html              # Template for the home page.
+│   ├── cell_model.html        # Template for switch pages.
+│   ├── host_model.html        # Template for host pages.
+│   └── switch_pages/          # Directory containing dynamically generated switch and host pages.
+│       ├── cell-1/            # Directory for switch 1 containing its related HTML files.
+│       │   ├── switch.html    # cell page for switch 1.
+│       │   ├── host-1.html    # Host 1 page for switch 1.
+│       │   ├── host-2.html    # Host 2 page for switch 1.
+│       │   └── ...  
+│       ├── cell-2/            # Directory for switch 2 containing its related HTML files.
+│       │   ├── switch.html    # cell page for switch 2.
+│       │   ├── host-1.html    # Host 1 page for switch 2.
+│       │   ├── host-2.html    # Host 2 page for switch 2.
 │       │   └── ...
-│       └── cell2(switch2)/
-│           ├── switch.html
-│           ├── host-1.html
-│           ├── host-2.html
-│           └── ...
+│       └── ...
+...
+```
 
 ## Setup
 
@@ -74,7 +71,8 @@ python Flask_app.py
 
 - **Home Route**: `/home`
 - **Methods**: `GET`, `POST`
-- **Description**: Displays the home page with switch information and whitelist data. Allows navigation to individual switch pages.
+- **Description**: Displays the home page with switch information and whitelist data. 
+  Allows navigation to individual switch pages.
 
 ### Network Management Routes
 
@@ -147,7 +145,8 @@ python Flask_app.py
 
 ### Page Generation Functions
 
-- **create_cell_host_pages(switches_hosts)**: Creates dynamic web pages for each switch and host based on the network topology.
+- **create_cell_host_pages(switches_hosts)**: 
+  Creates dynamic web pages for each switch and host based on the network topology.
 
 ### Utility Functions
 
