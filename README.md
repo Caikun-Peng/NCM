@@ -105,4 +105,4 @@ cd flask
 python3 Flask_app.py
 ```
 
-Get more information in [flask page](flask/README.md).
+Get more information in [flask page](flask/README.md) or [Wiki - Flask Application Documentation](https://github.com/Caikun-Peng/NCM/wiki/Flask-Application-Documentation).
