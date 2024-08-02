@@ -44,6 +44,11 @@ class ncm():
     def restart(self):
         self.stop()
         self.start()
+    
+    def shutdown(self):
+        self.stop()
+        os.system('mc -c')
+        subprocess.run(['killall', 'xterm'])
 
 def get_windows():
     try:

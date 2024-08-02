@@ -14,11 +14,11 @@ import json
 import subprocess
 import os
 
-from webob import Request
+# from webob import Request
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller import dpset
-from ryu.controller.handler import MAIN_DISPATCHER, CONFIG_DISPATCHER
+from ryu.controller.handler import MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
 from ryu.app.wsgi import ControllerBase
@@ -617,6 +617,10 @@ class ncmController(ControllerBase):
     def restartNet(self, req, **kwargs):
         net.restart()
 
+    @route('net', urlNet+'/shutdown', methods=['POST'])
+    def restartNet(self, req, **kwargs):
+        net.shutdown()
+
     # endregion
 
     # region functions
@@ -697,21 +701,7 @@ class ncmAPI(app_manager.RyuApp):
         wsgi.register(ncmController, data)
 
     @set_ev_cls([ofp_event.EventOFPStatsReply,
-                 ofp_event.EventOFPDescStatsReply,
                  ofp_event.EventOFPFlowStatsReply,
-                 ofp_event.EventOFPAggregateStatsReply,
-                 ofp_event.EventOFPTableStatsReply,
-                 ofp_event.EventOFPTableFeaturesStatsReply,
-                 ofp_event.EventOFPPortStatsReply,
-                 ofp_event.EventOFPQueueStatsReply,
-                 ofp_event.EventOFPQueueDescStatsReply,
-                 ofp_event.EventOFPMeterStatsReply,
-                 ofp_event.EventOFPMeterFeaturesStatsReply,
-                 ofp_event.EventOFPMeterConfigStatsReply,
-                 ofp_event.EventOFPGroupStatsReply,
-                 ofp_event.EventOFPGroupFeaturesStatsReply,
-                 ofp_event.EventOFPGroupDescStatsReply,
-                 ofp_event.EventOFPPortDescStatsReply
                  ], MAIN_DISPATCHER)
     def stats_reply_handler(self, ev):
         msg = ev.msg
