@@ -2,21 +2,41 @@
 Code Author: Peng, Caikun
 File Name: net.py
 Create Date: 16/07/2024 
-Edited Date: 01/08/2024
+Edited Date: 02/08/2024
 Description: Start Mininet
-Dependencies: mininet, math, json, os, subprocess
+Dependencies: mininet, json, os, subprocess
 '''
 
 from mininet.net import Mininet
-from mininet.topo import Topo
-from mininet.node import Controller, OVSSwitch, RemoteController
+from mininet.node import OVSSwitch, RemoteController
 from mininet.cli import CLI
 from mininet.link import TCLink
 from mininet.log import setLogLevel, info
-import math
 import json
 import os
 import subprocess
+
+class system_setup():
+    _instance = None
+    def __init__(self):
+        if not hasattr(self, 'initialized'):  # Change parameters here
+            self.mininet = Mininet( # setup net.Mininet
+                link = TCLink, 
+                switch = IPv6DisabledSwitch,
+                controller = None,
+                autoSetMacs = True, 
+                autoStaticArp = True
+            )
+            self.numHosts = 4 # Number of hosts in each cell
+            self.numCells = 2 # Number of cells
+
+            self.routingTable = {}
+            self.initialized = True
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
 class IPv6DisabledSwitch(OVSSwitch):
     def start(self, controllers):
@@ -25,26 +45,11 @@ class IPv6DisabledSwitch(OVSSwitch):
         self.cmd('sysctl -w net.ipv6.conf.all.disable_ipv6=1')
         self.cmd('sysctl -w net.ipv6.conf.default.disable_ipv6=1')
 
-def get_white_list():
-    try:
-        whiteList = json.load(open('whitelist.json','r'))
-    except Exception as e:
-        whiteList = json.load(open('whitelist_default.json','r'))
-    return whiteList
-
-net = None
-routingTable = {}
-
 def setup_net(net):
-    global routingTable
+    setup = system_setup()
+    routingTable = setup.routingTable
     if net is None:
-        net = Mininet(
-            link = TCLink, 
-            switch = IPv6DisabledSwitch,
-            controller = None,
-            autoSetMacs = True, 
-            autoStaticArp = True
-        )
+        net = setup.mininet
 
         net.addController(
             'Ctl0', 
@@ -56,10 +61,8 @@ def setup_net(net):
 
         dpidToSwitchName = {}
         # Number of devices
-        numHosts = 4
-        numSwitches = 2
-        numMonitor  = 1
-        numSwitchToHosts = math.ceil(numHosts / numSwitches)
+        numHosts = setup.numHosts
+        numSwitches = setup.numCells
         whiteList = get_white_list()
         numWeb = len(whiteList)
         
@@ -79,7 +82,7 @@ def setup_net(net):
             routingTable[switchDpid] = []
             dpidToSwitchName[switchDpid] = [switchName]
             # create link between monitor and switch
-            linkMonitorToSwitch = net.addLink(switch, monitor)
+            net.addLink(switch, monitor)
             routingTable[monitorDpid].append({
                 "cookie": "0x0",
                 "priority": 10,
@@ -102,12 +105,12 @@ def setup_net(net):
                 "table": 0
             })
 
-            for hostId in range(numSwitchToHosts): # create host(s)
+            for hostId in range(numHosts): # create host(s)
                 hostIp = f'10.0.{switchId}.{hostId+2}' 
                 hostName = f'h{switchId}{hostId}'
                 host = net.addHost(hostName, ip = hostIp)
                 # create link between switch and host
-                linkHostToSwitch = net.addLink(host, switch)
+                net.addLink(host, switch)
                 routingTable[switchDpid].append({
                     "cookie": "0x0",
                     "priority": 10,
@@ -122,15 +125,10 @@ def setup_net(net):
                     'match':{'ip,nw_dst': hostIp},
                     "table": f'{hostId+2}'
                 })
-
-                # check the number of created host
-                numHostCreated = switchId * numSwitchToHosts + hostId + 1
-                if numHostCreated == numHosts:
-                    break
         
         # create local server and white list webs
         server = net.addHost('localServer', ip = '10.0.0.1')
-        linkMonitorToServer = net.addLink(server, monitor, intfName1='ls-eth0')
+        net.addLink(server, monitor, intfName1='ls-eth0')
         routingTable[monitorDpid].append({
             "cookie": "0x0",
             "priority": 11,
@@ -149,7 +147,7 @@ def setup_net(net):
             webIP = whiteList[webID]['ip']
             webName = whiteList[webID]['name']
             web = net.addHost(f'{webName}', ip = webIP)
-            linkMonitorToInternet = net.addLink(web, monitor)
+            net.addLink(web, monitor) # link Monitor to Internet
             routingTable[monitorDpid].append({
                 "cookie": "0x0",
                 "priority": 10,
@@ -173,7 +171,9 @@ def setup_net(net):
     return net
 
 def add_web(net):
-    global routingTable
+    setup = system_setup()
+    routingTable = setup.routingTable
+
     whiteList = json.load(open('whitelist_add.json','r'))
     numWebDef = len(get_white_list())
     numWeb = len(whiteList)
@@ -184,7 +184,7 @@ def add_web(net):
         webIP = f"{whiteList[webID]['ip']}"
         webName = whiteList[webID]['name']
         web = net.addHost(f'{webName}', ip = webIP)
-        linkMonitorToWeb = net.addLink(web, monitor)
+        net.addLink(web, monitor) # link Monitor to Web
         routingTable[monitorDpid].append({
             "cookie": "0x0",
             "priority": 10,
@@ -206,6 +206,13 @@ def add_web(net):
     print('done')
     return net
 
+def get_white_list():
+    try:
+        whiteList = json.load(open('whitelist.json','r'))
+    except Exception as e:
+        whiteList = json.load(open('whitelist_default.json','r'))
+    return whiteList
+
 def start_net(net):
     if net is not None:
         net.start()
@@ -220,8 +227,8 @@ def block_ipv6(net):
         host.cmd('sysctl -w net.ipv6.conf.lo.disable_ipv6=1')
 
 def conf_net(net):
-    global routingTable
-    num_switches = len(net.switches)
+    setup = system_setup()
+    routingTable = setup.routingTable
     for switch in net.switches:
         switch_name = switch.name
         switch_dpid = switch.dpid
