@@ -26,29 +26,54 @@ xdg-open http://localhost:5000/
 ## Topology
 The topology of the network in this project is like:
 ``` markdown
-┌──────┐      ╭─────────────────╮  REST API  ╭─────────────╮
-│ Host ├──┐   | Ryu Controller  |<───────────| Application |
-└──────┘  |   ╰────────╥────────╯            ╰──────┬──────╯
-┌──────┐  |            ║                            | 
-│ Host ├──┤   OpenFlow ╠═══════════════════════╗    |              ┌───────────────────────┐
-└──────┘  |            ║                       ║    |          ┌───┤ Whitelisting websites |
-┌──────┐  |       ┌────╨────┐           ┌──────╨────┴──────┐   |   └───────────────────────┘
-│ Host ├──┼───────┤ Switch  ├───────────┤ Monitor/Firewall ├───┤
-└──────┘  |       └─────────┘           └─────────┬────────┘   |   ┌──────────────┐
-          |                                       |            └───┤ Local Server |
- ......  ...                                      |                └──────────────┘
-          |                                  ╭────┴────╮
-┌──────┐  |                                  | Logger  |
-│ Host ├──┘                                  ╰─────────╯
-└──────┘  
+                                 ╭─────────────────╮   REST API   ╭─────────────╮
+                                 | Ryu Controller  |<────────────>| Application |
+                                 ╰────────╥────────╯     Flask    ╰─────────────╯ 
+                                          ║
+┌────────┐                       OpenFlow ║
+│ Host 1 ├──┐                             ║
+└────────┘  |                ╔════════════╬═════════════════════╗                ┌──────────────┐
+┌────────┐  |                ║            ║                     ║            ┌───┤ Local Server |
+│ Host 2 ├──┤       ┌────────╨────────┐   ║           ┌─────────╨────────┐   |   └──────────────┘
+└────────┘  ├───────┤ Switch 1/Cell 1 ├───╫─────┬─────┤ Monitor/Firewall ├───┤
+ ......    ...      └─────────────────┘   ║     |     └─────────┬────────┘   |   ┌───────────────────────┐
+            |                             ║     |               |            └───┤ Whitelisting websites |
+┌────────┐  |                             ║     |          ╭────┴────╮           └───────────────────────┘
+│ Host n ├──┘                             ║     |          | Logger  |
+└────────┘                                ║     |          ╰─────────╯
+┌────────┐                                ║     |
+│ Host 1 ├──┐                             ║     |
+└────────┘  |                ╔════════════╣     |
+┌────────┐  |                ║            ║     |
+│ Host 2 ├──┤       ┌────────╨────────┐   ║     |
+└────────┘  ├───────┤ Switch 2/Cell 2 ├───╫─────┤
+ ......    ...      └─────────────────┘   ║     |
+            |                             ║     |
+┌────────┐  |                             ║     |
+│ Host n ├──┘                             ║     |
+└────────┘                                ║     |
+                                          ║     |
+ ......  ...         ................    ...   ...
+                                          ║     |
+┌────────┐                                ║     |
+│ Host 1 ├──┐                             ║     |
+└────────┘  |                ╔════════════╝     |
+┌────────┐  |                ║                  |
+│ Host 2 ├──┤       ┌────────╨────────┐         |
+└────────┘  ├───────┤ Switch m/Cell m ├─────────┘
+ ......    ...      └─────────────────┘
+            |
+┌────────┐  |
+│ Host n ├──┘
+└────────┘
 ```
 where
-- **Host**: Host node represents the terminal device in the network.
-- **Switch**: Switch node connecta multiple hosts and manage traffic.
+- **Host**: Host node represents the terminal device in the network. Controlled by table # in Flow table panel.
+- **Switch/Cell**: Switch node connect multiple hosts and manage traffic.
 - **Monitor/Firewall**: Monitoring or firewall devices for network security and traffic monitoring.
-- **Whitelisting websites** and **Local Server**: Other _hosts_ simulated as internet webs and local server
+- **Whitelisting websites and Local Server**: Other hosts(web #) simulated as internet webs and local server. 
 - **Ryu Controller**: Controller communicates with the switch and monitor through the OpenFlow protocol.
-- **Application**: Application sents REST API based information in ryu controller
+- **Application**: Application sent REST API based information in Ryu controller
 - **Logger**: Logger records network activity logs (if necessary).
 
 ## Software versions
