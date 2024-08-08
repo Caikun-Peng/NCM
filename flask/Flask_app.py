@@ -270,6 +270,7 @@ def get_usage(cellid, hostNo):
 def create_cell_host_pages(switches_hosts):
     # Clean up files
     current_dir = os.path.join(TEMPLATE_DIR, 'switch_pages')
+    os.makedirs(current_dir, exist_ok=True)
     if os.path.exists(current_dir):
         for filename in os.listdir(current_dir):
             if filename.startswith('cell-'):
